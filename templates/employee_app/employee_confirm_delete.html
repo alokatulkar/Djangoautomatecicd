@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+  <title>Employee Delete</title>
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <h1 class="text-primary text-center">Employee Delete Confirm</h1>
+    <form method="post">
+      {% csrf_token %}
+      <h1>Are you sure you want to delete the employee <span class="text-danger">{{employee.name}}???</span></h1>
+      <button type="submit" class="btn btn-outline-danger col-sm-5">YES</button>
+      <a href="{% url 'employee-list' %}" class="btn btn-outline-warning col-sm-5 float-end">NO</a>
+    </form>
+  </div>
+{% endblock %}
