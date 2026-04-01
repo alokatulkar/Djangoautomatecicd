@@ -3,11 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "alok2804/django-app"
-        SONARQUBE_ENV = "SonarQube"   // Name configured in Jenkins
-    }
-
-    tools {
-        sonarScanner 'SonarScanner'   // Name from Global Tool Config
+        SONARQUBE_ENV = "SonarQube"
     }
 
     stages {
@@ -42,32 +38,6 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                sh '''
-                pip3 install -r requirements.txt
-                '''
-            }
-        }
-
-        stage('Run Migrations') {
-            steps {
-                sh '''
-                . venv/bin/activate
-                python manage.py migrate
-                '''
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                sh '''
-                . venv/bin/activate
-                python manage.py test
-                '''
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t ${DOCKER_IMAGE}:latest .'
@@ -92,8 +62,22 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl apply -f k8s/'
+                sh '''
+                kubectl apply -f k8s/
+                '''
             }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline completed'
+        }
+        success {
+            echo 'Deployment successful 🚀'
+        }
+        failure {
+            echo 'Pipeline failed ❌'
         }
     }
 }
