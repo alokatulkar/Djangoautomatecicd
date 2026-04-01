@@ -18,14 +18,15 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
-                    sh '''
-                    /opt/sonar-scanner/bin/sonar-scanner \
-                    -Dsonar.projectKey=django-app \
-                    -Dsonar.projectName=django-app \
-                    -Dsonar.sources=. \
-                    -Dsonar.language=py \
-                    -Dsonar.python.version=3
-                    '''
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                        sh '''
+                        /opt/sonar-scanner/bin/sonar-scanner \
+                        -Dsonar.projectKey=django-app \
+                        -Dsonar.projectName=django-app \
+                        -Dsonar.sources=. \
+                        -Dsonar.login=$SONAR_TOKEN
+                        '''
+                    }
                 }
             }
         }
@@ -62,7 +63,9 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl apply -f k8s/'
+                sh '''
+                kubectl apply -f k8s/
+                '''
             }
         }
     }
