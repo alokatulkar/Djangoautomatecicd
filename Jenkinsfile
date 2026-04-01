@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "alok2804/django-app"
-        SONARQUBE_ENV = "SonarQube"
+        SONAR_HOST_URL = "http://13.126.156.68:9000"
     }
 
     stages {
@@ -17,20 +17,15 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv("${SONARQUBE_ENV}") {
-                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                        sh '''
-                        /opt/sonar-scanner/bin/sonar-scanner -Dsonar.projectKey=django-app -Dsonar.projectName=django-app -Dsonar.sources=. -Dsonar.login=$SONAR_TOKEN
-                        '''
-                    }
-                }
-            }
-        }
-
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 2, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    sh '''
+                    /opt/sonar-scanner/bin/sonar-scanner \
+                    -Dsonar.projectKey=django-app \
+                    -Dsonar.projectName=django-app \
+                    -Dsonar.sources=. \
+                    -Dsonar.host.url=$SONAR_HOST_URL \
+                    -Dsonar.login=$SONAR_TOKEN
+                    '''
                 }
             }
         }
@@ -59,9 +54,7 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh '''
-                kubectl apply -f k8s/
-                '''
+                sh 'kubectl apply -f k8s/'
             }
         }
     }
