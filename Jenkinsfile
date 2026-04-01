@@ -6,10 +6,6 @@ pipeline {
         SONARQUBE_ENV = "SonarQube"
     }
 
-    tools {
-        sonarRunner 'SonarScanner'
-    }
-
     stages {
 
         stage('Checkout Code') {
@@ -23,7 +19,7 @@ pipeline {
             steps {
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
                     sh '''
-                    sonar-scanner \
+                    /opt/sonar-scanner/bin/sonar-scanner \
                     -Dsonar.projectKey=django-app \
                     -Dsonar.projectName=django-app \
                     -Dsonar.sources=. \
