@@ -3,6 +3,11 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "alok2804/django-app"
+        SONARQUBE_ENV = "SonarQube"   // Name configured in Jenkins
+    }
+
+    tools {
+        sonarScanner 'SonarScanner'   // Name from Global Tool Config
     }
 
     stages {
@@ -11,6 +16,29 @@ pipeline {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/alokatulkar/Djangoautomatecicd.git'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv("${SONARQUBE_ENV}") {
+                    sh '''
+                    sonar-scanner \
+                    -Dsonar.projectKey=django-app \
+                    -Dsonar.projectName=django-app \
+                    -Dsonar.sources=. \
+                    -Dsonar.language=py \
+                    -Dsonar.python.version=3
+                    '''
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 2, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
 
