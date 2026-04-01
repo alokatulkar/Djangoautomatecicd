@@ -19,6 +19,9 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh '''
+                    unset SONAR_SCANNER_OPTS
+                    unset JAVA_TOOL_OPTIONS
+
                     /opt/sonar-scanner/bin/sonar-scanner \
                     -Dsonar.projectKey=django-app \
                     -Dsonar.projectName=django-app \
