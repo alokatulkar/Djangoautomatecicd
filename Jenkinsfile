@@ -20,11 +20,7 @@ pipeline {
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
                     withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                         sh '''
-                        /opt/sonar-scanner/bin/sonar-scanner \
-                        -Dsonar.projectKey=django-app \
-                        -Dsonar.projectName=django-app \
-                        -Dsonar.sources=. \
-                        -Dsonar.login=$SONAR_TOKEN
+                        /opt/sonar-scanner/bin/sonar-scanner -Dsonar.projectKey=django-app -Dsonar.projectName=django-app -Dsonar.sources=. -Dsonar.login=$SONAR_TOKEN
                         '''
                     }
                 }
