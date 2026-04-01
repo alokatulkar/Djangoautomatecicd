@@ -6,6 +6,10 @@ pipeline {
         SONARQUBE_ENV = "SonarQube"
     }
 
+    tools {
+        sonarRunner 'SonarScanner'
+    }
+
     stages {
 
         stage('Checkout Code') {
@@ -62,9 +66,7 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh '''
-                kubectl apply -f k8s/
-                '''
+                sh 'kubectl apply -f k8s/'
             }
         }
     }
