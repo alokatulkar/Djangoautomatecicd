@@ -3,12 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "alok2804/django-app"
-        SONARQUBE_ENV = "SonarQube"   // must match Jenkins config name
-    }
-
-    tools {
-        jdk 'jdk17'
-        sonarScanner 'SonarScanner'
+        SONARQUBE_ENV = "SonarQube"
     }
 
     stages {
@@ -17,7 +12,6 @@ pipeline {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/alokatulkar/Djangoautomatecicd.git'
-                    // credentialsId: 'github-creds' (optional)
             }
         }
 
