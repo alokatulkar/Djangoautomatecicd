@@ -17,9 +17,9 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv("${SONARQUBE_ENV}") {
+                withSonarQubeEnv('SonarQube') {
                     sh '''
-                    sonar-scanner \
+                    ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
                     -Dsonar.projectKey=django-app \
                     -Dsonar.projectName=django-app \
                     -Dsonar.sources=. \
