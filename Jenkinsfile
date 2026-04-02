@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        jdk 'jdk17'   // Ensure this is configured in Jenkins
-    }
-
     environment {
         DOCKER_IMAGE = "alok2804/django-app"
     }
@@ -15,7 +11,6 @@ pipeline {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/alokatulkar/Djangoautomatecicd.git'
-                    // credentialsId: 'github-creds' (optional)
             }
         }
 
@@ -95,15 +90,6 @@ pipeline {
             steps {
                 sh 'kubectl apply -f k8s/'
             }
-        }
-    }
-
-    post {
-        success {
-            echo "✅ Pipeline executed successfully!"
-        }
-        failure {
-            echo "❌ Pipeline failed. Check logs."
         }
     }
 }
