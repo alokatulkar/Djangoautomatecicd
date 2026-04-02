@@ -3,7 +3,12 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "alok2804/django-app"
-        SONAR_HOST_URL = "http://13.126.156.68:9000"
+        SONARQUBE_ENV = "SonarQube"   // must match Jenkins config name
+    }
+
+    tools {
+        jdk 'jdk17'
+        sonarScanner 'SonarScanner'
     }
 
     stages {
@@ -12,24 +17,57 @@ pipeline {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/alokatulkar/Djangoautomatecicd.git'
+                    // credentialsId: 'github-creds' (optional)
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                withSonarQubeEnv("${SONARQUBE_ENV}") {
                     sh '''
-                    unset SONAR_SCANNER_OPTS
-                    unset JAVA_TOOL_OPTIONS
-
-                    /opt/sonar-scanner/bin/sonar-scanner \
+                    sonar-scanner \
                     -Dsonar.projectKey=django-app \
                     -Dsonar.projectName=django-app \
                     -Dsonar.sources=. \
-                    -Dsonar.host.url=$SONAR_HOST_URL \
-                    -Dsonar.login=$SONAR_TOKEN
+                    -Dsonar.python.version=3
                     '''
                 }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 2, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                python3 -m venv venv
+                . venv/bin/activate
+                pip install -r requirements.txt
+                '''
+            }
+        }
+
+        stage('Run Migrations') {
+            steps {
+                sh '''
+                . venv/bin/activate
+                python manage.py migrate
+                '''
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh '''
+                . venv/bin/activate
+                python manage.py test
+                '''
             }
         }
 
@@ -43,11 +81,11 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'USER',
-                    passwordVariable: 'PASS'
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh '''
-                    echo "$PASS" | docker login -u "$USER" --password-stdin
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                     docker push ${DOCKER_IMAGE}:latest
                     docker logout
                     '''
@@ -59,18 +97,6 @@ pipeline {
             steps {
                 sh 'kubectl apply -f k8s/'
             }
-        }
-    }
-
-    post {
-        always {
-            echo 'Pipeline completed'
-        }
-        success {
-            echo 'Deployment successful 🚀'
-        }
-        failure {
-            echo 'Pipeline failed ❌'
         }
     }
 }
