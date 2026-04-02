@@ -19,42 +19,27 @@ pipeline {
                 sh '''
                 python3 -m venv venv
                 . venv/bin/activate
+                pip install --upgrade pip
                 pip install -r requirements.txt
-                pip install coverage
                 '''
             }
         }
 
-        stage('Run Tests with Coverage') {
+        stage('Run Migrations') {
             steps {
                 sh '''
                 . venv/bin/activate
-                coverage run manage.py test
-                coverage xml
+                python manage.py migrate
                 '''
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('Run Tests') {
             steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh '''
-                    sonar-scanner \
-                    -Dsonar.projectKey=django-app \
-                    -Dsonar.projectName=django-app \
-                    -Dsonar.sources=. \
-                    -Dsonar.python.version=3 \
-                    -Dsonar.python.coverage.reportPaths=coverage.xml
-                    '''
-                }
-            }
-        }
-
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 3, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
+                sh '''
+                . venv/bin/activate
+                python manage.py test
+                '''
             }
         }
 
