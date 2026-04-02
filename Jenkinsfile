@@ -14,6 +14,27 @@ pipeline {
             }
         }
 
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                python3 -m venv venv
+                . venv/bin/activate
+                pip install -r requirements.txt
+                pip install coverage
+                '''
+            }
+        }
+
+        stage('Run Tests with Coverage') {
+            steps {
+                sh '''
+                . venv/bin/activate
+                coverage run manage.py test
+                coverage xml
+                '''
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
@@ -22,7 +43,8 @@ pipeline {
                     -Dsonar.projectKey=django-app \
                     -Dsonar.projectName=django-app \
                     -Dsonar.sources=. \
-                    -Dsonar.python.version=3
+                    -Dsonar.python.version=3 \
+                    -Dsonar.python.coverage.reportPaths=coverage.xml
                     '''
                 }
             }
@@ -33,34 +55,6 @@ pipeline {
                 timeout(time: 3, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
-            }
-        }
-
-        stage('Install Dependencies') {
-            steps {
-                sh '''
-                python3 -m venv venv
-                . venv/bin/activate
-                pip install -r requirements.txt
-                '''
-            }
-        }
-
-        stage('Run Migrations') {
-            steps {
-                sh '''
-                . venv/bin/activate
-                python manage.py migrate
-                '''
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                sh '''
-                . venv/bin/activate
-                python manage.py test
-                '''
             }
         }
 
@@ -90,6 +84,15 @@ pipeline {
             steps {
                 sh 'kubectl apply -f k8s/'
             }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Pipeline executed successfully!"
+        }
+        failure {
+            echo "❌ Pipeline failed!"
         }
     }
 }
