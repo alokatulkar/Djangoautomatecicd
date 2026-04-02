@@ -1,9 +1,12 @@
 pipeline {
     agent any
 
+    tools {
+        jdk 'jdk17'   // Ensure this is configured in Jenkins
+    }
+
     environment {
         DOCKER_IMAGE = "alok2804/django-app"
-        SONARQUBE_ENV = "SonarQube"
     }
 
     stages {
@@ -12,6 +15,7 @@ pipeline {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/alokatulkar/Djangoautomatecicd.git'
+                    // credentialsId: 'github-creds' (optional)
             }
         }
 
@@ -19,7 +23,7 @@ pipeline {
             steps {
                 withSonarQubeEnv('SonarQube') {
                     sh '''
-                    ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
+                    sonar-scanner \
                     -Dsonar.projectKey=django-app \
                     -Dsonar.projectName=django-app \
                     -Dsonar.sources=. \
@@ -31,7 +35,7 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 2, unit: 'MINUTES') {
+                timeout(time: 3, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
@@ -91,6 +95,15 @@ pipeline {
             steps {
                 sh 'kubectl apply -f k8s/'
             }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Pipeline executed successfully!"
+        }
+        failure {
+            echo "❌ Pipeline failed. Check logs."
         }
     }
 }
