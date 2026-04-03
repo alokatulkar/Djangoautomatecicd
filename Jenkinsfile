@@ -1,9 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        sonarQubeScanner 'sonar-scanner'
-    }
 
     environment {
         DOCKER_IMAGE = "alok2804/django-app"
@@ -23,7 +20,10 @@ pipeline {
        stage('SonarQube Analysis') {
     steps {
         withSonarQubeEnv("${SONARQUBE_ENV}") {
-            sh 'sonar-scanner'
+            script {
+                def scannerHome = tool 'sonar-scanner'
+                sh "${scannerHome}/bin/sonar-scanner"
+            }
         }
     }
 }
