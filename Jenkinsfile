@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        sonarQubeScanner 'sonar-scanner'
+    }
+
     environment {
         DOCKER_IMAGE = "alok2804/django-app"
         SONARQUBE_ENV = "sonarqube-server"
