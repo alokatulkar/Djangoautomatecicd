@@ -6,6 +6,10 @@ pipeline {
         SONARQUBE_ENV = "sonarqube-server"
     }
 
+   tools {
+    sonarQubeScanner 'sonar-scanner'
+}
+
     stages {
 
         stage('Checkout Code') {
@@ -18,13 +22,7 @@ pipeline {
        stage('SonarQube Analysis') {
     steps {
         withSonarQubeEnv("${SONARQUBE_ENV}") {
-            sh '''
-            sonar-scanner \
-            -Dsonar.projectKey=django-app \
-            -Dsonar.sources=. \
-            -Dsonar.host.url=$SONAR_HOST_URL \
-            -Dsonar.login=$SONAR_AUTH_TOKEN
-            '''
+            sh 'sonar-scanner'
         }
     }
 }
