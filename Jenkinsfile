@@ -6,9 +6,6 @@ pipeline {
         SONARQUBE_ENV = "sonarqube-server"
     }
 
-   tools {
-    sonarQubeScanner 'sonar-scanner'
-}
 
     stages {
 
